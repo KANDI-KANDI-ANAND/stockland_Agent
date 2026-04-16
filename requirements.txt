@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg
+psycopg[binary]
+pgvector
+python-dotenv
+pydantic
+loguru
+redis
+langchain
+langgraph
+playwright
+streamlit
+python-docx
+reportlab
