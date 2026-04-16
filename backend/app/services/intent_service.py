@@ -22,11 +22,11 @@ INSTRUCTIONS:
 Possible intents:
 search -> general property search questions
 communities -> user wants information, details, or overview of a community/location
-homes -> asking about specific houses or pricing
+homes -> asking about specific houses, pricing, rates, or costs (even if a location or community is mentioned)
 news -> asking about news updates
 ads -> asking about advertisements
 releases -> asking about project releases
-submit_interest -> ONLY when user says "I want to buy", "contact me", "call me", or "I'm interested in buying" and If the user says his name and phone number and email address in one message
+submit_interest -> Use ONLY when the user explicitly expresses a strong desire to buy, reach out, or be contacted (e.g., "I want to buy", "contact me", "call me"). DO NOT use this for general price inquiries or info requests.
 report -> user specifically asks for a "report" or "PDF"
 Examples:
 "Tell me about Highlands" -> communities

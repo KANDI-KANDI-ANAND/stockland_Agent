@@ -34,4 +34,8 @@ def router(state):
     if any(k in question for k in ["buy", "contact", "call me", "interested in buying"]):
         return "submit_interest"
 
+    lead = state.get("lead", {})
+    if lead and any(lead.values()):
+        return "submit_interest"
+
     return "search"
