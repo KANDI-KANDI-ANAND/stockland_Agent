@@ -1,22 +1,12 @@
-from sqlalchemy import select
-from backend.app.database.models.home import Home
-
+from backend.app.services.search_service import SearchService
 
 async def homes_node(state):
-
     db = state["db"]
+    
+    query = state.get("rewritten_query") or state.get("question")
 
-    result = await db.execute(select(Home))
-
-    homes = result.scalars().all()
-
-    data = []
-
-    for h in homes:
-        data.append(
-            f"{h.home_type} - {h.bedrooms} bedrooms - ${h.price}"
-        )
-
-    state["answer"] = "\n".join(data)
-
+    results = await SearchService.hybrid_search(db, query)
+    
+    state["context"] = results
+    
     return state

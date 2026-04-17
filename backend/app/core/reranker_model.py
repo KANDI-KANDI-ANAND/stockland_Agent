@@ -1,3 +1,4 @@
-from sentence_transformers import CrossEncoder
-
-reranker = CrossEncoder("BAAI/bge-reranker-large")
+class MockReranker:
+    def predict(self, pairs):
+        return [1.0] * len(pairs)
+reranker = MockReranker()

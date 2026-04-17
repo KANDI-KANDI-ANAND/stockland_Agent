@@ -7,21 +7,17 @@ async def formatter_node(state):
     context = state.get("context", [])
 
     context_text = "\n".join([
-        f"{c.get('name', 'N/A')}: {c.get('description', 'No description available')}"
-        for c in context
+        f"- {c.get('title', 'Property')}: {c.get('summary', 'Details available upon request.')}"
+        for c in context[:10]
     ])
 
     prompt = f"""
-You are a helpful assistant for Stockland real estate.
-Answer the user's question using the provided context.
-STRICT FORMATTING RULES:
-1. Use **bold text** for property names, communities, and prices.
-2. Use bullet points (-) for any lists of features, ads, or news.
-3. Start a new paragraph with a double newline for different topics.
-4. If providing a list of items, ensure each item starts on a fresh line.
-
-User Question: {question}
-Relevant Information: {context_text}
+You are a Stockland Real Estate expert. 
+Base your answer ONLY on the context provided. If no info is found, say you can't find specific details but offer to help find a community.
+Context:
+{context_text}
+User: {question}
+Rule: Be concise. Use **bold** for prices and names.
 """
 
     answer = await LLMClient.generate_answer(prompt)

@@ -9,20 +9,17 @@ async def query_rewrite_node(state):
     history_text = "\n".join([f"{m['role']}: {m['content']}" for m in history[-3:]])
 
     prompt = f"""
-Given the following conversation history and the new user message, rewrite the user message into a standalone, descriptive search query.
-HISTORY:
-{history_text}
-USER MESSAGE:
-{question}
-EXAMPLE:
-History: AI asks "Want more info on Highlands?"
-User: "Yes"
-Output: "Provide more details about Highlands community location and amenities"
+Given the history and message, output a clean, standalone search query using only KEYWORDS.
+DO NOT use sentences. DO NOT use quotes.
+HISTORY: {history_text}
+USER MESSAGE: {question}
 Rewritten Query:
 """
 
     rewritten = await LLMClient.generate_answer(prompt)
 
-    state["rewritten_query"] = rewritten.strip()
+    clean_query = rewritten.replace('"', '').replace("'", "").replace("Search Query:", "").strip()
+
+    state["rewritten_query"] = clean_query
 
     return state

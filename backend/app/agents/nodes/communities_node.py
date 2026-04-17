@@ -1,15 +1,10 @@
-from backend.app.repositories.location_repository import LocationRepository
-from backend.app.services.embedding_service import EmbeddingService
+from backend.app.services.search_service import SearchService
 
 async def communities_node(state):
-
     db = state["db"]
-    query = state["rewritten_query"]
+    query = state.get("rewritten_query") or state.get("question")
 
-    embedding = EmbeddingService.generate_embedding(query)
-
-    results = await LocationRepository.semantic_search(db, embedding)
-
+    results = await SearchService.hybrid_search(db, query)
+    
     state["context"] = results
-
     return state

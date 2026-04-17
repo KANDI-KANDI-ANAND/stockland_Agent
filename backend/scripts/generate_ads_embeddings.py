@@ -27,7 +27,7 @@ async def main():
     async with AsyncSessionLocal() as db:
 
         result = await db.execute(
-            select(Ad).where(Ad.embedding.is_(None))
+            select(Ad)
         )
 
         ads = result.scalars().all()

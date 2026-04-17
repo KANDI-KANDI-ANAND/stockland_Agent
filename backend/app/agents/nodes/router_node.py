@@ -1,9 +1,5 @@
 def router(state):
 
-    lead = state.get("lead", {})
-    if lead and any(lead.values()):
-        return "submit_interest"
-
     intent = state["intent"]
     question = state["question"].lower()
 

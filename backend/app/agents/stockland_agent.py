@@ -47,6 +47,12 @@ class StocklandAgent:
         final_answer = result["answer"]
 
         # 4. SAVE TO CACHE: Store the new answer for next time
-        redis_client.set_cache(cache_key, final_answer)
+        negative_phrases = ["can't find", "no information", "no specific details", "couldn't find"]
+        is_negative = any(phrase in final_answer.lower() for phrase in negative_phrases)
+        if not is_negative:
+            redis_client.set_cache(cache_key, final_answer)
+            print("💾 Result cached (Positive answer)")
+        else:
+            print("🛑 Negative response detected - Skipping cache to allow for future database updates.")
         memory.add_message("assistant", final_answer)
         return result

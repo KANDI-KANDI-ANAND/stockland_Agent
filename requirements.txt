@@ -15,8 +15,6 @@ streamlit
 python-docx
 reportlab
 psycopg2-binary
-sentence-transformers
-torch
 httpx
 openai
 prefect

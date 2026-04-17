@@ -35,7 +35,7 @@ async def main():
     async with AsyncSessionLocal() as db:
 
         result = await db.execute(
-            select(Home).where(Home.embedding.is_(None))
+            select(Home)
         )
 
         homes = result.scalars().all()

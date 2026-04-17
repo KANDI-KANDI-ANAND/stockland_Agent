@@ -8,7 +8,7 @@ class SearchService:
     VECTOR_LIMIT = 10
     KEYWORD_LIMIT = 10
     FINAL_LIMIT = 15
-    MIN_SCORE = 0.35
+    MIN_SCORE = 0.0
 
 
     # -----------------------------
@@ -191,5 +191,9 @@ class SearchService:
             reverse=True
         )
 
+        print(f"🔍 SEARCH DEBUG: Found {len(ranked)} results for query: '{query}'")
+        
         return ranked[:SearchService.FINAL_LIMIT]
+
+        
 

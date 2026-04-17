@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from backend.app.database.connection import AsyncSessionLocal
 from backend.app.database.models.location import Location
-from backend.app.core.embedding_model import model
+from backend.app.services.embedding_service import EmbeddingService
 
 
 def build_summary(location):
@@ -17,11 +17,6 @@ Amenities available include {amenities}.
 """.strip()
 
 
-def generate_embeddings_batch(texts):
-    embeddings = model.encode(texts, normalize_embeddings=True)
-    return embeddings.tolist()
-
-
 async def main():
 
     async with AsyncSessionLocal() as db:
@@ -31,29 +26,14 @@ async def main():
 
         print("Total locations:", len(locations))
 
-        summaries = []
-        location_ids = []
-
         for location in locations:
-
             summary = build_summary(location)
-
-            summaries.append(summary)
-            location_ids.append(location.id)
-
-        embeddings = generate_embeddings_batch(summaries)
-
-        for i, location in enumerate(locations):
-
-            location.summary = summaries[i]
-            location.embedding = embeddings[i]
-
-            print("Updated:", location.name)
-
+            embedding = EmbeddingService.generate_embedding(summary)
+            
+            location.summary = summary
+            location.embedding = embedding
+            print(f"Updated: {location.name}")
         await db.commit()
-
-    print("Embeddings generated successfully.")
-
-
+    print("Location embeddings updated successfully.")
 if __name__ == "__main__":
     asyncio.run(main())

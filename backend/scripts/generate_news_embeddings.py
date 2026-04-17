@@ -12,7 +12,7 @@ async def main():
     async with AsyncSessionLocal() as db:
 
         result = await db.execute(
-            select(News).where(News.embedding.is_(None))
+            select(News)
         )
 
         news_list = result.scalars().all()
