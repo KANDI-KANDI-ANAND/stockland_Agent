@@ -21,50 +21,38 @@ class SearchService:
 
         sql = text("""
         (SELECT 'location' as type, id, name as title, summary,
-            1 - (embedding <-> CAST(:embedding AS vector)) as score
+            1 - (embedding <=> CAST(:embedding AS vector)) as score
         FROM locations
-        ORDER BY embedding <-> CAST(:embedding AS vector)
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit)
-
         UNION ALL
-
         (SELECT 'home' as type, id, home_type as title, summary,
-            1 - (embedding <-> CAST(:embedding AS vector)) as score
+            1 - (embedding <=> CAST(:embedding AS vector)) as score
         FROM homes
-        ORDER BY embedding <-> CAST(:embedding AS vector)
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit)
-
         UNION ALL
-
         (SELECT 'news' as type, id, title, summary,
-            1 - (embedding <-> CAST(:embedding AS vector)) as score
+            1 - (embedding <=> CAST(:embedding AS vector)) as score
         FROM news
-        ORDER BY embedding <-> CAST(:embedding AS vector)
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit)
-
         UNION ALL
-
         (SELECT 'ads' as type, id, ad_text as title, summary,
-            1 - (embedding <-> CAST(:embedding AS vector)) as score
+            1 - (embedding <=> CAST(:embedding AS vector)) as score
         FROM ads
-        ORDER BY embedding <-> CAST(:embedding AS vector)
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit)
-
         UNION ALL
-
         (SELECT 'release' as type, id, title, summary,
-            1 - (embedding <-> CAST(:embedding AS vector)) as score
+            1 - (embedding <=> CAST(:embedding AS vector)) as score
         FROM releases
-        ORDER BY embedding <-> CAST(:embedding AS vector)
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit)
         """)
-
         result = await db.execute(
             sql,
-            {
-                "embedding": embedding_str,
-                "limit": SearchService.VECTOR_LIMIT
-            }
+            {"embedding": embedding_str, "limit": SearchService.VECTOR_LIMIT}
         )
 
         rows = result.fetchall()
