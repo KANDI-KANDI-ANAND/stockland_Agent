@@ -1,5 +1,6 @@
 import asyncio
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload # Add this import
 
 from backend.app.database.connection import AsyncSessionLocal
 from backend.app.database.models.home import Home
@@ -7,8 +8,13 @@ from backend.app.services.embedding_service import EmbeddingService
 
 
 def build_summary(home: Home):
-
     parts = []
+
+    # NEW: Add Location and State context so search can find "Victoria" or "Banksia"
+    location_name = home.location.name if home.location else "Unknown Community"
+    location_state = home.location.state if home.location else "Unknown State"
+    
+    parts.append(f"Located in the {location_name} community in {location_state}")
 
     if home.home_type:
         parts.append(home.home_type)
@@ -26,37 +32,29 @@ def build_summary(home: Home):
         parts.append(f"priced at ${int(home.price)}")
 
     summary = "This home offers " + ", ".join(parts) + "."
-
     return summary
 
 
 async def main():
-
     async with AsyncSessionLocal() as db:
-
+        # NEW: Ensure we load the location data alongside the home
         result = await db.execute(
-            select(Home)
+            select(Home).options(joinedload(Home.location))
         )
 
         homes = result.scalars().all()
-
-        print("Total homes:", len(homes))
+        print("Total homes to process:", len(homes))
 
         for home in homes:
-
             summary = build_summary(home)
-
             embedding = EmbeddingService.generate_embedding(summary)
 
             home.summary = summary
             home.embedding = embedding
-
-            print("Processed:", home.home_type)
+            print(f"Updated: {home.home_type} in {home.location.state if home.location else ''}")
 
         await db.commit()
-
-        print("\nHome embeddings generated successfully.")
-
+        print("\nHome embeddings with context generated successfully.")
 
 if __name__ == "__main__":
     asyncio.run(main())
