@@ -73,7 +73,6 @@ if user_prompt:
         message_placeholder = st.empty()
 
         with st.spinner("Analyzing Stockland Data..."):
-
             try:
                 response = requests.post(
                     API_URL, 
@@ -83,21 +82,19 @@ if user_prompt:
                     }
                 )
                 response.raise_for_status()
-
                 data = response.json()
-
-                answer = data.get("answer", "Sorry, something went wrong.")
-
-            except requests.exceptions.RequestException as e:
-                st.error(f"Error: {e}")
-
-        # streaming effect
-        def stream_data():
-            for word in answer.split(" "):
-                yield word + " "
-                time.sleep(0.02)
-        message_placeholder.write_stream(stream_data)
-
-    st.session_state.messages.append(
-        {"role": "assistant", "content": answer, "avatar": "🤖"}
-    )
+                answer = data.get("answer", "Sorry, I couldn't process that.")
+                # Only try to stream if we actually got an answer
+                def stream_data():
+                    for word in answer.split(" "):
+                        yield word + " "
+                        time.sleep(0.02)
+                message_placeholder.write_stream(stream_data)
+                # Store assistant response in history
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": answer, "avatar": "🤖"}
+                )
+            except Exception as e:
+                st.error(f"⚠️ Could not reach the backend: {e}")
+                # Provide a fallback so it doesn't crash
+                answer = "Error connecting to service."
