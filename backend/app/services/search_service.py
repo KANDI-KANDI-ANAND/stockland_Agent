@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 from sqlalchemy import text
 
 from backend.app.services.embedding_service import EmbeddingService
@@ -74,10 +75,12 @@ class SearchService:
         if filters.get("location"):
             conditions.append("LOWER(l.name) LIKE LOWER(:loc)")
             params["loc"] = f"%{filters['location']}%"
+        
+        # Consistent 6-column structure
         sql = text(f"""
             SELECT 'home' as type, h.id, h.home_type as title, 
                    (h.summary || ' | Land Area: ' || h.size || 'm²') as summary,
-                   h.image_url, 1.0 as score -- Added image_url
+                   h.image_url, 1.0 as score
             FROM homes h
             JOIN locations l ON h.location_id = l.id
             WHERE {" AND ".join(conditions)}
@@ -87,7 +90,17 @@ class SearchService:
         
         result = await db.execute(sql, params)
         rows = result.fetchall()
-        return [{"type": r.type, "id": r.id, "title": r.title, "summary": r.summary, "image_url": getattr(r, "image_url", None), "score": float(r.score), "source": "strict"} for r in rows]   
+        return [
+            {
+                "type": r.type, 
+                "id": r.id, 
+                "title": r.title, 
+                "summary": r.summary, 
+                "image_url": r.image_url, 
+                "score": float(r.score), 
+                "source": "strict"
+            } for r in rows
+        ]   
 
 
     # -----------------------------
@@ -98,30 +111,35 @@ class SearchService:
 
         embedding_str = "[" + ",".join(map(str, query_embedding)) + "]"
 
+        # FIXED: Every SELECT now has exactly 6 columns in the same order
         sql = text("""
         (SELECT 'location' as type, id, name as title, summary, 
+            NULL as image_url, -- Placeholder for 6th column
             (1 - (embedding <=> CAST(:embedding AS vector))) * 1.1 as score 
          FROM locations ORDER BY score DESC LIMIT 15)
         UNION ALL
         (SELECT 'home' as type, id, home_type as title, 
             (summary || ' | Land Area: ' || size || 'm²') as summary, 
-            image_url, -- Added image_url
+            image_url, 
             (1 - (embedding <=> CAST(:embedding AS vector))) * 1.2 as score 
          FROM homes ORDER BY score DESC LIMIT 25)
         UNION ALL
         (SELECT 'news' as type, id, title, summary, 
+            NULL as image_url, -- Placeholder for 6th column
             (1 - (embedding <=> CAST(:embedding AS vector))) as score 
          FROM news ORDER BY score DESC LIMIT 10)
         UNION ALL
         (SELECT 'ads' as type, id, ad_text as title, summary, 
-            image_url, -- Added image_url
+            image_url, 
             (1 - (embedding <=> CAST(:embedding AS vector))) as score 
          FROM ads ORDER BY score DESC LIMIT 10)
         UNION ALL
         (SELECT 'release' as type, id, title, summary,
+            NULL as image_url, -- Placeholder for 6th column
             (1 - (embedding <=> CAST(:embedding AS vector))) as score
         FROM releases ORDER BY score DESC LIMIT 10)
         """)
+        
         result = await db.execute(
             sql,
             {"embedding": embedding_str}
@@ -135,7 +153,7 @@ class SearchService:
                 "id": r.id,
                 "title": r.title,
                 "summary": r.summary,
-                "image_url": getattr(r, "image_url", None),
+                "image_url": r.image_url,
                 "score": float(r.score),
                 "source": "vector"
             }
@@ -149,27 +167,31 @@ class SearchService:
     @staticmethod
     async def keyword_search(db, query, tables=None):
 
+        # FIXED: Every SELECT now has exactly 6 columns in the same order
         sql = text("""
         (SELECT 'location' as type, id, name as title, summary, 
+            NULL as image_url, -- Placeholder for 5th column
             CASE WHEN name ILIKE :q_like THEN 1.0 ELSE ts_rank(to_tsvector(summary), plainto_tsquery(:q)) END as score
          FROM locations WHERE to_tsvector(summary) @@ plainto_tsquery(:q) OR name ILIKE :q_like LIMIT 10)
         UNION ALL
         (SELECT 'home' as type, id, home_type as title, 
             (summary || ' | Land Area: ' || size || 'm²') as summary, 
-            image_url, -- Added image_url
+            image_url, 
             CASE WHEN home_type ILIKE :q_like THEN 1.0 ELSE ts_rank(to_tsvector(summary), plainto_tsquery(:q)) END as score
          FROM homes WHERE to_tsvector(summary) @@ plainto_tsquery(:q) OR home_type ILIKE :q_like LIMIT 15)
         UNION ALL
         (SELECT 'news' as type, id, title, summary, 
+            NULL as image_url, -- Placeholder for 5th column
             ts_rank(to_tsvector(summary), plainto_tsquery(:q)) as score
          FROM news WHERE to_tsvector(summary) @@ plainto_tsquery(:q) LIMIT 10)
         UNION ALL
         (SELECT 'ads' as type, id, ad_text as title, summary, 
-            image_url, -- Added image_url
+            image_url, 
             ts_rank(to_tsvector(ad_text), plainto_tsquery(:q)) as score
          FROM ads WHERE to_tsvector(ad_text) @@ plainto_tsquery(:q) LIMIT 10)
         UNION ALL
         (SELECT 'release' as type, id, title, summary, 
+            NULL as image_url, -- Placeholder for 5th column
             ts_rank(to_tsvector(summary), plainto_tsquery(:q)) as score
          FROM releases WHERE to_tsvector(summary) @@ plainto_tsquery(:q) LIMIT 10)
         """)
@@ -190,7 +212,7 @@ class SearchService:
                 "id": r.id,
                 "title": r.title,
                 "summary": r.summary,
-                "image_url": getattr(r, "image_url", None),
+                "image_url": r.image_url,
                 "score": float(r.score),
                 "source": "keyword"
             }
@@ -236,6 +258,3 @@ class SearchService:
         
         print(f"🔍 SEARCH DEBUG: Final set contains {len(ranked)} results.")
         return ranked[:SearchService.FINAL_LIMIT]
-
-        
-
