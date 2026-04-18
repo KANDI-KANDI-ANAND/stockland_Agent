@@ -3,7 +3,7 @@ import json
 from sqlalchemy import text
 
 from backend.app.services.embedding_service import EmbeddingService
-from backend.app.services.llm_service import LLMClient
+from backend.app.core.llm_client import LLMClient
 
 class SearchService:
 
@@ -87,7 +87,7 @@ class SearchService:
         
         result = await db.execute(sql, params)
         rows = result.fetchall()
-        return [{"type": r.type, "id": r.id, "title": r.title, "summary": r.summary, "image_url": r.image_url, "score": 1.0, "source": "strict"} for r in rows]   
+        return [{"type": r.type, "id": r.id, "title": r.title, "summary": r.summary, "image_url": getattr(r, "image_url", None), "score": float(r.score), "source": "strict"} for r in rows]   
 
 
     # -----------------------------
