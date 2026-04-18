@@ -17,7 +17,6 @@ class ReportService:
 
         filename = f"reports/report_{uuid.uuid4()}.pdf"
 
-        # margins and page layout
         doc = SimpleDocTemplate(
             filename,
             pagesize=A4,
@@ -29,7 +28,6 @@ class ReportService:
 
         styles = getSampleStyleSheet()
 
-        # Custom styles
         title_style = ParagraphStyle(
             "Title",
             parent=styles["Title"],
@@ -54,7 +52,6 @@ class ReportService:
 
         elements = []
 
-        # Split lines
         lines = report_text.split("\n")
 
         for line in lines:
@@ -64,7 +61,6 @@ class ReportService:
             if not line:
                 continue
 
-            # Detect headings
             if line.startswith("**") and line.endswith("**"):
 
                 clean = line.replace("**", "")

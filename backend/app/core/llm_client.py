@@ -15,7 +15,7 @@ class LLMClient:
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            temperature=0,
+            temperature=0.3,
         )
 
         answer = response.choices[0].message.content

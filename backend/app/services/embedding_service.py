@@ -11,7 +11,6 @@ class EmbeddingService:
 
     @staticmethod
     def generate_embedding(text: str):
-        # Clean text to remove newlines which can cause issues with embeddings
         text = text.replace("\n", " ")
         
         response = client.embeddings.create(

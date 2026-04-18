@@ -97,9 +97,9 @@ class NewsScraper:
         (cards) => {
             return cards.map(card => {
 
-                const dateEl = card.querySelector("span.text-primary");
-                const titleEl = card.querySelector("div.font-medium");
-                const summaryEl = card.querySelector("div.line-clamp-3");
+                const dateEl = card.querySelector("span.text-primary.font-medium");
+                const titleEl = card.querySelector("div.font-medium[class*='md:mb-4']");
+                const summaryEl = card.querySelector("div.line-clamp-3.text-brand-base");
                 const linkEl = card.querySelector("a[href*='/news-and-events/news/']");
 
                 return {

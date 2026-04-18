@@ -18,10 +18,6 @@ class HomeScraper:
 
             title = await title_el.inner_text()
 
-            # -------------------------
-            # Home type
-            # -------------------------
-
             home_category = "House & Land"
 
             title_lower = title.lower()
@@ -33,10 +29,6 @@ class HomeScraper:
                 home_category = "Land"
 
             home_type = f"{home_category} - {title}"
-
-            # -------------------------
-            # Price
-            # -------------------------
 
             price = None
 
@@ -60,10 +52,6 @@ class HomeScraper:
                 except:
                     price = None
 
-            # -------------------------
-            # Bedrooms / Bathrooms
-            # -------------------------
-
             bedrooms = None
             bathrooms = None
 
@@ -83,10 +71,6 @@ class HomeScraper:
 
             if len(numbers) >= 2:
                 bathrooms = numbers[1]
-
-            # -------------------------
-            # Size
-            # -------------------------
 
             size = None
 
@@ -108,10 +92,6 @@ class HomeScraper:
                                 size = float(text.replace("m", "").strip())
                             except:
                                 pass
-
-            # -------------------------
-            # Image
-            # -------------------------
 
             image_url = None
 
@@ -187,3 +167,4 @@ class HomeScraper:
             await browser.close()
 
             return all_homes
+

@@ -1,21 +1,12 @@
-from sqlalchemy import select
-from backend.app.database.models.ads import Ad
+from backend.app.services.search_service import SearchService
 
 
 async def ads_node(state):
 
     db = state["db"]
 
-    result = await db.execute(select(Ad))
+    query = state["rewritten_query"]
 
-    ads = result.scalars().all()
+    results = await SearchService.hybrid_search(db, query, tables=["ads"])
 
-    items = []
-
-    for ad in ads:
-
-        items.append(ad.ad_text)
-
-    state["answer"] = "\n".join(items)
-
-    return state
+    return {"context": results}

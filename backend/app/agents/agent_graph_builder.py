@@ -32,12 +32,12 @@ def build_graph():
     graph.add_node("submit_interest", submit_interest_node)
     graph.add_node("report", report_node)
 
-    graph.set_entry_point("intent")
+    graph.set_entry_point("rewrite")
 
-    graph.add_edge("intent", "rewrite")
+    graph.add_edge("rewrite", "intent")
 
     graph.add_conditional_edges(
-        "rewrite",
+        "intent",
         router,
         {
             "search": "search",
@@ -56,6 +56,8 @@ def build_graph():
     graph.add_edge("news", "formatter")
     graph.add_edge("ads", "formatter")
     graph.add_edge("releases", "formatter")
+    graph.add_edge("submit_interest", "formatter")
+    graph.add_edge("report", "formatter")
 
     graph.add_edge("formatter", END)
 

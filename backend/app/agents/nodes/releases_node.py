@@ -1,21 +1,9 @@
-from sqlalchemy import select
-from backend.app.database.models.release import Release
-
+from backend.app.services.search_service import SearchService
 
 async def releases_node(state):
-
     db = state["db"]
+    query = state["rewritten_query"]
 
-    result = await db.execute(select(Release).limit(5))
-
-    releases = result.scalars().all()
-
-    items = []
-
-    for r in releases:
-
-        items.append(r.title)
-
-    state["answer"] = "\n".join(items)
-
-    return state
+    results = await SearchService.hybrid_search(db, query, tables=["releases"])
+    
+    return {"context": results}

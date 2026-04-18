@@ -48,28 +48,24 @@ class ReleaseScraper:
 
             card = cards.nth(i)
 
-            # status
             status = None
             status_el = card.locator("div.flex.items-center")
 
             if await status_el.count() > 0:
                 status = (await status_el.first.inner_text()).strip()
 
-            # title
             title = None
             title_el = card.locator("div.promo-card-heading")
 
             if await title_el.count() > 0:
                 title = (await title_el.first.inner_text()).strip()
 
-            # description
             description = None
             desc_el = card.locator("div.grow.text-brand-base")
 
             if await desc_el.count() > 0:
                 description = (await desc_el.first.inner_text()).strip()
 
-            # link
             link = None
             link_el = card.locator("a[aria-label='Find out more']")
 
@@ -79,7 +75,6 @@ class ReleaseScraper:
                 if href:
                     link = "https://www.stockland.com.au" + href
 
-            # image
             image_url = None
             img = card.locator("picture img")
 

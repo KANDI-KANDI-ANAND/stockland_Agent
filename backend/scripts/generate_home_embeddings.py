@@ -1,6 +1,6 @@
 import asyncio
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload # Add this import
+from sqlalchemy.orm import joinedload
 
 from backend.app.database.connection import AsyncSessionLocal
 from backend.app.database.models.home import Home
@@ -10,7 +10,6 @@ from backend.app.services.embedding_service import EmbeddingService
 def build_summary(home: Home):
     parts = []
 
-    # NEW: Add Location and State context so search can find "Victoria" or "Banksia"
     location_name = home.location.name if home.location else "Unknown Community"
     location_state = home.location.state if home.location else "Unknown State"
     
@@ -37,7 +36,6 @@ def build_summary(home: Home):
 
 async def main():
     async with AsyncSessionLocal() as db:
-        # NEW: Ensure we load the location data alongside the home
         result = await db.execute(
             select(Home).options(joinedload(Home.location))
         )

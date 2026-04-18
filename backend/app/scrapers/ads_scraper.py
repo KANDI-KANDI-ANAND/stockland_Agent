@@ -2,7 +2,18 @@ import asyncio
 
 class AdsScraper:
 
-    ADS_URL = "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&search_type=page&view_all_page_id=159758724052194"
+    ADS_URLS = [
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=159758724052194",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=341899012565298",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=580854591981233",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=167279036669721",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=134591239921256",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=1446767475618588",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=1395890630676566",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=340985179291234",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=156030774420364",
+        "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&is_targeted_country=false&media_type=all&search_type=page&sort_data[direction]=desc&sort_data[mode]=total_impressions&view_all_page_id=350424078436623"
+    ]
 
 
     async def scroll_page(self, page):
@@ -27,116 +38,96 @@ class AdsScraper:
 
     async def scrape_ads(self, context):
 
-        page = await context.new_page()
+        all_ads = [] 
 
-        print("Opening Ads Library...")
+        for url in self.ADS_URLS:
+            page = await context.new_page()
+            print(f"Opening Ads Library for: {url}...")
+            try:
+                await page.goto(url, wait_until="domcontentloaded")
+                await page.wait_for_timeout(8000)
+                await self.scroll_page(page)
+                start_labels = page.locator("text=Started running on")
+                count = await start_labels.count()
+                print(f"Ads detected for this URL: {count}")
 
-        await page.goto(self.ADS_URL, wait_until="domcontentloaded")
+                for i in range(count):
 
-        # give time for JS to load ads
-        await page.wait_for_timeout(8000)
+                    label = start_labels.nth(i)
 
-        await self.scroll_page(page)
+                    card = label.locator("xpath=ancestor::div[5]")
 
-        # anchor on stable text
-        start_labels = page.locator("text=Started running on")
+                    text = await card.inner_text()
 
-        count = await start_labels.count()
+                    start_date = None
 
-        print("Ads detected:", count)
+                    for line in text.split("\n"):
 
-        ads = []
+                        if "Started running on" in line:
 
-        for i in range(count):
+                            start_date = line.replace(
+                                "Started running on",
+                                ""
+                            ).strip()
 
-            label = start_labels.nth(i)
+                    ad_text = None
 
-        # move up DOM to reach card container
-            card = label.locator("xpath=ancestor::div[5]")
+                    spans = card.locator("span")
 
-            text = await card.inner_text()
+                    span_count = await spans.count()
 
-        # -----------------------
-        # Extract start date
-        # -----------------------
+                    for j in range(span_count):
 
-            start_date = None
+                        span = spans.nth(j)
 
-            for line in text.split("\n"):
+                        try:
 
-                if "Started running on" in line:
+                            content = (await span.inner_text()).strip()
 
-                    start_date = line.replace(
-                        "Started running on",
-                        ""
-                    ).strip()
+                            if len(content) > 40 and "Sponsored" not in content:
 
-        # -----------------------
-        # Extract ad text
-        # -----------------------
+                                ad_text = content
+                                break
 
-            ad_text = None
+                        except:
+                            pass
 
-            spans = card.locator("span")
+                    image_url = None
 
-            span_count = await spans.count()
+                    img = card.locator("img")
 
-            for j in range(span_count):
+                    if await img.count() > 0:
 
-                span = spans.nth(j)
+                        image_url = await img.first.get_attribute("src")
 
-                try:
+                    destination = None
 
-                    content = (await span.inner_text()).strip()
+                    links = card.locator("a")
 
-                    if len(content) > 40 and "Sponsored" not in content:
+                    link_count = await links.count()
 
-                        ad_text = content
-                        break
+                    for j in range(link_count):
 
-                except:
-                    pass
+                        link = links.nth(j)
 
-        # -----------------------
-        # Extract image
-        # -----------------------
+                        href = await link.get_attribute("href")
 
-            image_url = None
+                        if href and "stockland.com.au" in href:
 
-            img = card.locator("img")
+                            destination = href
+                            break
 
-            if await img.count() > 0:
+                    all_ads.append({
+                        "ad_text": ad_text,
+                        "image_url": image_url,
+                        "start_date": start_date,
+                        "destination": destination
+                    })
+            except Exception as e:
+                print(f"Error scraping {url}: {e}")
+            finally:
+                await page.close() 
+            
+            await asyncio.sleep(5)
 
-                image_url = await img.first.get_attribute("src")
-
-        # -----------------------
-        # Extract destination link
-        # -----------------------
-
-            destination = None
-
-            links = card.locator("a")
-
-            link_count = await links.count()
-
-            for j in range(link_count):
-
-                link = links.nth(j)
-
-                href = await link.get_attribute("href")
-
-                if href and "stockland.com.au" in href:
-
-                    destination = href
-                    break
-
-            ads.append({
-                "ad_text": ad_text,
-                "image_url": image_url,
-                "start_date": start_date,
-                "destination": destination
-            })
-
-        await page.close()
-
-        return ads
+        return all_ads

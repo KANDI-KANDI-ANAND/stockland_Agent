@@ -39,7 +39,6 @@ class LocationRepository:
 
         existing = result.scalar_one_or_none()
 
-        # INSERT
         if not existing:
 
             location = Location(
@@ -54,7 +53,6 @@ class LocationRepository:
 
             return location
 
-        # UPDATE if changed
         changed = False
 
         if existing.description != description:

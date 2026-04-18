@@ -1,21 +1,9 @@
-from sqlalchemy import select
-from backend.app.database.models.news import News
-
+from backend.app.services.search_service import SearchService
 
 async def news_node(state):
-
     db = state["db"]
+    query = state["rewritten_query"]
 
-    result = await db.execute(select(News).limit(5))
-
-    news_list = result.scalars().all()
-
-    items = []
-
-    for n in news_list:
-
-        items.append(n.title)
-
-    state["answer"] = "\n".join(items)
-
-    return state
+    results = await SearchService.hybrid_search(db, query, tables=["news"])
+    
+    return {"context": results}

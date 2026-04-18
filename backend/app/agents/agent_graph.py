@@ -1,12 +1,13 @@
-from typing import TypedDict, Any
+from typing import TypedDict, Any, Annotated
+import operator
 
 
 class AgentState(TypedDict):
 
     question: str
     rewritten_query: str
-    intent: str
-    context: str
+    intent: list
+    context: Annotated[list, operator.add]
     answer: str
     history: list
     db: Any

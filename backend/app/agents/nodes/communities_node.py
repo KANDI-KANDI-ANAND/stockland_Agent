@@ -6,5 +6,4 @@ async def communities_node(state):
 
     results = await SearchService.hybrid_search(db, query)
     
-    state["context"] = results
-    return state
+    return {"context": results}

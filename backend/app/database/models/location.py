@@ -27,7 +27,6 @@ class Location(Base):
 
     summary = Column(Text)
 
-    # embedding for semantic search
     embedding = Column(Vector(384))
 
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -38,7 +37,6 @@ class Location(Base):
         onupdate=datetime.utcnow
     )
 
-    # relationships
     homes = relationship(
         "Home",
         back_populates="location",

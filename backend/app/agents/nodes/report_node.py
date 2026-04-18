@@ -7,9 +7,8 @@ import json
 async def report_node(state):
 
     db = state["db"]
-    question = state["question"]
+    question = state["rewritten_query"]
 
-    # Step 1 — Extract community using LLM
     extract_prompt = f"""
 Extract the community name from the user query.
 
@@ -17,6 +16,7 @@ Return ONLY JSON.
 
 Example:
 {{ "community": "Highlands" }}
+{{ "community": "Banksia" }}
 
 User query:
 {question}
@@ -30,20 +30,16 @@ User query:
     except:
         community_name = None
 
-    # Step 2 — Validate community
+
     if not community_name:
 
-        state["answer"] = "Please specify the community you want the report for."
+        return {"context": [{"type": "error", "title": "Report Error", "summary": "Please specify the community you want the report for."}]}
 
-        return state
-
-    # Step 3 — Fetch data from database
     community_data = await ReportDataService.get_full_community_data(
         db,
         community_name
     )
 
-    # Step 4 — Generate report text
     report_prompt = f"""
 You are a professional real estate analyst.
 
@@ -64,11 +60,9 @@ Community Data:
 
     report_text = await LLMClient.generate_answer(report_prompt)
 
-    # Step 5 — Generate PDF
+
     pdf_path = ReportService.generate_pdf(report_text)
 
     pdf_url = f"http://127.0.0.1:8000/{pdf_path}"
     
-    state["answer"] = f"### ✅ Your Report is Ready\n\nYou can download the structured report here: **[Download Community Report]({pdf_url})**"
-
-    return state
+    return {"context": [{"type": "report", "title": "Community Report", "summary": f"Your report for {community_name} is ready. [Download Community Report]({pdf_url})"}]}

@@ -9,7 +9,6 @@ async def submit_interest_node(state):
     question = state["question"]
     lead = state.get("lead", {})
 
-    # STEP 1: Extract fields using LLM
     prompt = f"""
     Extract the following real estate lead information from the user message:
     - name
@@ -33,12 +32,9 @@ async def submit_interest_node(state):
 
     response = await LLMClient.generate_answer(prompt)
 
-    # --- ROBUST JSON CLEANING ---
     try:
-        # 1. Remove Markdown code blocks if they exist
         clean_response = re.sub(r"```json|```", "", response).strip()
         
-        # 2. Find the first '{' and last '}' to isolate the JSON block
         start_idx = clean_response.find('{')
         end_idx = clean_response.rfind('}')
         
@@ -46,7 +42,6 @@ async def submit_interest_node(state):
             json_str = clean_response[start_idx:end_idx+1]
             data = json.loads(json_str)
 
-            # Update lead mapping, only keeping non-null values
             for key in ["name", "phone", "email", "community"]:
                 val = data.get(key)
                 if val and val != "null":
@@ -54,24 +49,20 @@ async def submit_interest_node(state):
         
     except Exception as e:
         print(f"Extraction Error Logic: {str(e)} | Raw Response: {response}")
-        # If parsing fails, we continue with existing lead data
 
-    # STEP 2: Check missing fields
     required_fields = ["name", "phone", "email"]
     missing = [f for f in required_fields if f not in lead or not lead[f]]
 
     if missing:
         state["lead"] = lead
         missing_str = ", ".join(missing)
-        state["answer"] = f"Thank you! To help you further with your interest in your community, could you please provide your **{missing_str}**?"
-        return state
+        return {"context": [{"type": "info", "title": "Information Needed", "summary": f"To record your interest, please provide your **{missing_str}**."}]}
 
-    # STEP 3: Save to database
     try:
         await InterestService.save_interest(db, lead)
-        state["lead"] = {} # Clear the lead after successful save
-        state["answer"] = "### 🎉 Success!\n\nThank you! Your interest has been recorded in our system. One of our property consultants will reach out to you shortly."
+        state["lead"] = {} 
+        return {"context": [{"type": "success", "title": "Success!", "summary": "Thank you! Your interest has been recorded in our system. One of our property consultants will reach out to you shortly."}]}
     except Exception as e:
-        state["answer"] = f"I'm sorry, I encountered an error saving your details. Please try again or contact us directly. (Error: {str(e)})"
+        return {"context": [{"type": "error", "title": "Error", "summary": f"I'm sorry, I encountered an error saving your details. Please try again or contact us directly. (Error: {str(e)})"}]}
 
     return state

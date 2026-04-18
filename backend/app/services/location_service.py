@@ -1,5 +1,5 @@
 from backend.app.repositories.location_repository import LocationRepository
-from backend.app.services.query_embedding_service import QueryEmbeddingService
+from backend.app.services.embedding_service import EmbeddingService
 from backend.app.core.llm_client import LLMClient
 
 
@@ -8,7 +8,7 @@ class LocationService:
     @staticmethod
     async def search_locations(db, question):
 
-        embedding = await QueryEmbeddingService.embed_query(question)
+        embedding = EmbeddingService.generate_embedding(question)
 
         results = await LocationRepository.semantic_search(
             db,

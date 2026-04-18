@@ -36,3 +36,10 @@ async def chat_endpoint(
             status_code=500,
             detail=str(e)
         )
+
+@router.get("/clear-redis-cache-danger-zone")
+async def clear_redis():
+    from backend.app.core.redis_cache import redis_client
+    # This deletes EVERYTHING in your Redis instance
+    await redis_client.flushall()
+    return {"status": "Success", "message": "Redis Cache has been completely cleared!"}

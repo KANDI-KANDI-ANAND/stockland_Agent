@@ -33,17 +33,13 @@ class StateCommunitiesScraper:
             if not href:
                 continue
 
-            # must start with residential
             if not href.startswith("/residential/"):
                 continue
-
-            # ignore unwanted paths
             if "/find-your-home" in href or "/news" in href:
                 continue
 
             parts = href.strip("/").split("/")
 
-            # expected pattern: residential/state/community
             if len(parts) == 3:
 
                 state = parts[1]

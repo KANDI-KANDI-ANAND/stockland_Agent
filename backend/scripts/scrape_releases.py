@@ -21,7 +21,6 @@ async def main():
 
             locations = await LocationRepository.get_all_locations(db)
 
-            # Aura is the location for these updates
             aura = next(l for l in locations if l.name.lower() == "aura")
 
             releases = await scraper.scrape_releases(context, aura.id)
