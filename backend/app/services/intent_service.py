@@ -17,6 +17,10 @@ INSTRUCTIONS:
 Possible intents:
 search, communities, homes, news, ads, releases, submit_interest, report
 Return ONLY the intent name(s) separated by commas if multiple.
+Examples:
+1. User: "I want to buy" or "I have interested" -> submit_interest
+2. User: "Generate a report" or "I want a report" -> report
+3. User: "I have interested in buying a house and generate a report" -> submit_interest, report
 """
 
         response = await LLMClient.generate_answer(prompt)

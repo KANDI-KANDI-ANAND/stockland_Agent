@@ -6,7 +6,7 @@ async def query_rewrite_node(state):
     question = state["question"]
     history = state.get("history", [])
 
-    history_text = "\n".join([f"{m['role']}: {m['content']}" for m in history[-5:]])
+    history_text = "\n".join([f"{m['role']}: {m['content']}" for m in history[-3:]])
 
     prompt = f"""
 ROLE: You are an expert Search Query Optimizer for a real estate AI.

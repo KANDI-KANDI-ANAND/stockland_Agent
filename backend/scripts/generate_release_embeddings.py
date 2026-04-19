@@ -26,7 +26,7 @@ async def main():
     async with AsyncSessionLocal() as db:
 
         result = await db.execute(
-            select(Release).where(Release.embedding.is_(None))
+            select(Release)
         )
 
         releases = result.scalars().all()

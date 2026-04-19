@@ -53,6 +53,7 @@ Sections:
 5. Shopping Centres
 6. Available Homes
 7. Market Insights
+8. All the available additional information
 
 Community Data:
 {community_data}
@@ -63,6 +64,6 @@ Community Data:
 
     pdf_path = ReportService.generate_pdf(report_text)
 
-    pdf_url = f"http://127.0.0.1:8000/{pdf_path}"
+    pdf_url = f"BASE_URL/{pdf_path}"
     
     return {"context": [{"type": "report", "title": "Community Report", "summary": f"Your report for {community_name} is ready. [Download Community Report]({pdf_url})"}]}

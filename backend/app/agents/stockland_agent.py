@@ -46,7 +46,7 @@ class StocklandAgent:
         if not is_negative:
             await SemanticCacheRepository.save_cache(
                 db, 
-                question, 
+                result.get("rewritten_query"), 
                 final_answer, 
                 question_embedding
             )
